@@ -88,6 +88,7 @@
   // ---------- data loading ----------
   function loadAll() {
     loadStats();
+    loadRooms();
     loadBookings();
     loadCompanies();
   }
@@ -104,6 +105,33 @@
       document.getElementById('statGrid').innerHTML = tiles.map(function (t) {
         return '<div class="stat-tile' + (t.warn ? ' stat-tile-warn' : '') + '"><p class="stat-label">' + esc(t.label) + '</p><p class="stat-value mono">' + t.value + '</p></div>';
       }).join('');
+    }).catch(function (err) { if (err.status === 401) showLogin(); });
+  }
+
+  function loadRooms() {
+    api('/api/admin/rooms').then(function (rows) {
+      var el = document.getElementById('roomsTableBody');
+      if (!rows.length) { el.innerHTML = '<tr><td colspan="4" class="empty-note">Chưa có phòng họp nào.</td></tr>'; return; }
+      el.innerHTML = rows.map(function (r) {
+        return '<tr><td>' + esc(r.name) + '</td><td class="mono">' + r.capacity + ' chỗ</td><td>' + esc(r.floor) + '</td>' +
+          '<td class="table-actions">' +
+            '<button class="icon-btn" data-edit-room="' + r.id + '" type="button" aria-label="Sửa thông tin phòng"><svg class="icon" width="15" height="15"><use href="#i-pencil"></use></svg></button>' +
+            '<button class="icon-btn icon-btn-danger" data-delete-room="' + r.id + '" type="button" aria-label="Xoá phòng"><svg class="icon" width="15" height="15"><use href="#i-trash"></use></svg></button>' +
+          '</td></tr>';
+      }).join('');
+      Array.prototype.forEach.call(el.querySelectorAll('[data-edit-room]'), function (btn) {
+        btn.addEventListener('click', function () { openRoomModal(rows.find(function (r) { return r.id === btn.getAttribute('data-edit-room'); })); });
+      });
+      Array.prototype.forEach.call(el.querySelectorAll('[data-delete-room]'), function (btn) {
+        btn.addEventListener('click', function () {
+          var r = rows.find(function (x) { return x.id === btn.getAttribute('data-delete-room'); });
+          if (!r) return;
+          if (!window.confirm('Xoá phòng "' + r.name + '"? Mọi lịch đặt đang có trong phòng này cũng sẽ bị huỷ.')) return;
+          api('/api/admin/rooms/' + r.id, { method: 'DELETE' })
+            .then(function () { toast('Đã xoá phòng "' + r.name + '"', 'ok'); loadAll(); })
+            .catch(function (err) { toast(err.message, 'warn'); });
+        });
+      });
     }).catch(function (err) { if (err.status === 401) showLogin(); });
   }
 
@@ -244,5 +272,38 @@
     });
   }
 
+  function openRoomModal(existing) {
+    var editing = !!existing;
+    var r = existing || { name: '', capacity: 4, floor: '' };
+    var dlg = document.getElementById('modalDialog');
+    dlg.innerHTML =
+      '<div class="modal-head"><h2 id="modalTitle">' + (editing ? 'Sửa thông tin phòng' : 'Thêm phòng họp') + '</h2>' +
+      '<button class="icon-btn" id="modalCloseBtn" type="button" aria-label="Đóng"><svg class="icon" width="15" height="15"><use href="#i-x"></use></svg></button></div>' +
+      '<div id="roomModalError"></div>' +
+      '<div class="field"><label for="roomName">Tên phòng</label><input type="text" id="roomName" value="' + esc(r.name) + '" maxlength="60" placeholder="VD: Cedar"></div>' +
+      '<div class="field"><label for="roomCapacity">Sức chứa (số chỗ)</label><input type="text" inputmode="numeric" id="roomCapacity" value="' + r.capacity + '"></div>' +
+      '<div class="field"><label for="roomFloor">Tầng</label><input type="text" id="roomFloor" value="' + esc(r.floor) + '" maxlength="40" placeholder="VD: Tầng 8"></div>' +
+      '<div class="modal-actions"><button class="btn btn-ghost" id="modalCancelBtn" type="button">Huỷ</button><button class="btn btn-primary" id="modalSaveBtn" type="button">Lưu</button></div>';
+    document.getElementById('modalOverlay').hidden = false;
+    document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+    document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('modalSaveBtn').addEventListener('click', function () {
+      var body = {
+        name: document.getElementById('roomName').value.trim(),
+        capacity: document.getElementById('roomCapacity').value.trim(),
+        floor: document.getElementById('roomFloor').value.trim()
+      };
+      var req = editing ? api('/api/admin/rooms/' + r.id, { method: 'PUT', body: body }) : api('/api/admin/rooms', { method: 'POST', body: body });
+      req.then(function () {
+        closeModal();
+        toast(editing ? ('Đã cập nhật phòng "' + body.name + '"') : ('Đã thêm phòng "' + body.name + '"'), 'ok');
+        loadAll();
+      }).catch(function (err) {
+        document.getElementById('roomModalError').innerHTML = '<div class="modal-error">' + esc(err.message) + '</div>';
+      });
+    });
+  }
+
+  document.getElementById('addRoomBtn').addEventListener('click', function () { openRoomModal(null); });
   document.getElementById('addCompanyBtn').addEventListener('click', function () { openCompanyModal(null); });
 })();

@@ -223,4 +223,71 @@ router.delete('/companies/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// ---------- rooms ----------
+
+router.get('/rooms', (req, res) => {
+  res.json(db.get().rooms);
+});
+
+router.post('/rooms', json, (req, res) => {
+  const { name, capacity, floor } = req.body || {};
+  if (typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ error: 'Vui lòng nhập tên phòng.' });
+  }
+  const cap = Number(capacity);
+  if (!Number.isFinite(cap) || cap < 1) {
+    return res.status(400).json({ error: 'Sức chứa phải là một số lớn hơn 0.' });
+  }
+  const created = db.mutate((s) => {
+    s.meta.roomSeq = s.meta.roomSeq || 1;
+    const id = 'room' + s.meta.roomSeq++;
+    const record = {
+      id,
+      name: name.trim().slice(0, 60),
+      capacity: Math.round(cap),
+      floor: typeof floor === 'string' && floor.trim() ? floor.trim().slice(0, 40) : 'Chưa cập nhật'
+    };
+    s.rooms.push(record);
+    return record;
+  });
+  res.status(201).json(created);
+});
+
+router.put('/rooms/:id', json, (req, res) => {
+  const { id } = req.params;
+  const state = db.get();
+  const room = state.rooms.find((r) => r.id === id);
+  if (!room) return res.status(404).json({ error: 'Không tìm thấy phòng họp.' });
+
+  const { name, capacity, floor } = req.body || {};
+  if (name !== undefined && !String(name).trim()) {
+    return res.status(400).json({ error: 'Tên phòng không được để trống.' });
+  }
+  if (capacity !== undefined && !(Number.isFinite(Number(capacity)) && Number(capacity) >= 1)) {
+    return res.status(400).json({ error: 'Sức chứa phải là một số lớn hơn 0.' });
+  }
+
+  const updated = db.mutate((s) => {
+    const r = s.rooms.find((x) => x.id === id);
+    if (name !== undefined) r.name = String(name).trim().slice(0, 60);
+    if (capacity !== undefined) r.capacity = Math.round(Number(capacity));
+    if (floor !== undefined) r.floor = String(floor).trim().slice(0, 40) || r.floor;
+    return r;
+  });
+  res.json(updated);
+});
+
+router.delete('/rooms/:id', (req, res) => {
+  const { id } = req.params;
+  const state = db.get();
+  const room = state.rooms.find((r) => r.id === id);
+  if (!room) return res.status(404).json({ error: 'Không tìm thấy phòng họp.' });
+
+  db.mutate((s) => {
+    s.bookings = s.bookings.filter((b) => b.roomId !== id);
+    s.rooms = s.rooms.filter((r) => r.id !== id);
+  });
+  res.json({ ok: true });
+});
+
 module.exports = router;

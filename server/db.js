@@ -24,7 +24,7 @@ const SEED = {
     { id: 'c5', name: 'Greenfield Logistics', plan: 'Chỗ ngồi linh hoạt · 3 chỗ', freeHours: 18, status: 'paused' }
   ],
   bookings: [],
-  meta: { bookingSeq: 1, companySeq: 6 }
+  meta: { bookingSeq: 1, companySeq: 6, roomSeq: 1 }
 };
 
 function ensureFile() {

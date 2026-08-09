@@ -48,6 +48,19 @@
 
     <section class="table-card card">
       <div class="table-card-head">
+        <div><h2>Phòng họp</h2><p class="hint">Sửa tên, sức chứa, tầng — hoặc xoá phòng không còn dùng.</p></div>
+        <button class="btn btn-primary" id="addRoomBtn" type="button"><svg class="icon"><use href="#i-plus"></use></svg>Thêm phòng</button>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Tên phòng</th><th>Sức chứa</th><th>Tầng</th><th></th></tr></thead>
+          <tbody id="roomsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="table-card card">
+      <div class="table-card-head">
         <div><h2>Quản lý lịch đặt</h2><p class="hint">Sửa giờ hoặc huỷ lịch thay khách khi có thay đổi.</p></div>
       </div>
       <div class="table-scroll">
