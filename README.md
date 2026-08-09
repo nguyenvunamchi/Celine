@@ -1,4 +1,4 @@
-# ATRIUM — Đặt phòng họp
+# SB SPACE HOLDING — Đặt phòng họp
 
 Website đặt phòng họp cho dịch vụ văn phòng trọn gói: khách thuê tự đặt giờ theo
 nguyên tắc **first in, first served**, được cảnh báo khi trùng lịch hoặc vượt
