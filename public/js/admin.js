@@ -38,13 +38,18 @@
     var d = new Date();
     return d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1);
   }
+  // Bilingual UI copy: Vietnamese is primary, English trails inline (italic,
+  // smaller — see .en in app.css). Only for the app's own fixed chrome text —
+  // never wraps user-entered data. Does NOT escape its arguments: pass
+  // already-esc()'d fragments if you interpolate dynamic data.
+  function bi(vi, en) { return vi + ' <span class="en">' + en + '</span>'; }
 
-  function toast(msg, kind) {
+  function toast(msg, kind, msgEn) {
     var stack = document.getElementById('toastStack');
     var el = document.createElement('div');
     el.className = 'toast';
     el.style.color = kind === 'warn' ? 'var(--warn)' : 'var(--ok)';
-    el.textContent = msg;
+    el.innerHTML = esc(msg) + (msgEn ? ' <span class="en">' + esc(msgEn) + '</span>' : '');
     stack.appendChild(el);
     setTimeout(function () {
       el.style.transition = 'opacity .25s ease';
@@ -62,7 +67,7 @@
   function showDashboard(username) {
     document.getElementById('loginWrap').hidden = true;
     document.getElementById('dashboard').hidden = false;
-    document.getElementById('whoami').textContent = username ? ('Xin chào, ' + username) : '';
+    document.getElementById('whoami').innerHTML = username ? bi('Xin chào, ' + esc(username), 'Hello, ' + esc(username)) : '';
     loadAll();
     if (!reportInitialized) {
       reportInitialized = true;
@@ -86,7 +91,7 @@
       document.getElementById('loginPass').value = '';
       showDashboard(data.username);
     }).catch(function (err) {
-      errBox.textContent = err.message || 'Đăng nhập thất bại.';
+      errBox.innerHTML = err.message ? esc(err.message) : bi('Đăng nhập thất bại.', 'Sign-in failed.');
       errBox.classList.add('is-visible');
     }).finally(function () { btn.disabled = false; });
   });
@@ -109,13 +114,13 @@
     api('/api/admin/stats').then(function (s) {
       var overCount = s.overLimitCompanies;
       var tiles = [
-        { label: 'Phòng họp', value: s.rooms },
-        { label: 'Lượt đặt đang hoạt động', value: s.activeBookings },
-        { label: 'Công ty đang thuê', value: s.activeCompanies },
-        { label: 'Công ty vượt giờ miễn phí', value: overCount, warn: overCount > 0 }
+        { vi: 'Phòng họp', en: 'Meeting rooms', value: s.rooms },
+        { vi: 'Lượt đặt đang hoạt động', en: 'Active bookings', value: s.activeBookings },
+        { vi: 'Công ty đang thuê', en: 'Tenant companies', value: s.activeCompanies },
+        { vi: 'Công ty vượt giờ miễn phí', en: 'Companies over allowance', value: overCount, warn: overCount > 0 }
       ];
       document.getElementById('statGrid').innerHTML = tiles.map(function (t) {
-        return '<div class="stat-tile' + (t.warn ? ' stat-tile-warn' : '') + '"><p class="stat-label">' + esc(t.label) + '</p><p class="stat-value mono">' + t.value + '</p></div>';
+        return '<div class="stat-tile' + (t.warn ? ' stat-tile-warn' : '') + '"><p class="stat-label">' + bi(t.vi, t.en) + '</p><p class="stat-value mono">' + t.value + '</p></div>';
       }).join('');
     }).catch(function (err) { if (err.status === 401) showLogin(); });
   }
@@ -127,20 +132,20 @@
 
   function loadReport(month) {
     var tbody = document.getElementById('reportTableBody');
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-note">Đang tải…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-note">' + bi('Đang tải…', 'Loading…') + '</td></tr>';
     api('/api/admin/reports/monthly?month=' + encodeURIComponent(month)).then(function (data) {
-      if (!data.companies.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty-note">Chưa có công ty nào.</td></tr>'; return; }
+      if (!data.companies.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty-note">' + bi('Chưa có công ty nào.', 'No companies yet.') + '</td></tr>'; return; }
       var rowsHtml = data.companies.map(function (c) {
         return '<tr><td>' + esc(c.name) + '</td><td class="mono">' + fmtH(c.freeHours) + '</td><td class="mono">' + fmtH(c.usedHours) + '</td>' +
           '<td>' + (c.overageHours > 0 ? '<span class="mono" style="color:var(--warn);font-weight:700">' + fmtH(c.overageHours) + '</span>' : '<span class="mono mini-figure">—</span>') + '</td>' +
           '<td class="mono">' + c.bookingCount + '</td></tr>';
       }).join('');
-      var totalHtml = '<tr style="font-weight:700"><td>Tổng cộng</td><td></td><td class="mono">' + fmtH(data.totals.usedHours) + '</td>' +
+      var totalHtml = '<tr style="font-weight:700"><td>' + bi('Tổng cộng', 'Total') + '</td><td></td><td class="mono">' + fmtH(data.totals.usedHours) + '</td>' +
         '<td class="mono" style="color:var(--warn)">' + fmtH(data.totals.overageHours) + '</td><td class="mono">' + data.totals.bookingCount + '</td></tr>';
       tbody.innerHTML = rowsHtml + totalHtml;
     }).catch(function (err) {
       if (err.status === 401) { showLogin(); return; }
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-note">Lỗi tải báo cáo: ' + esc(err.message) + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-note">' + bi('Lỗi tải báo cáo: ' + esc(err.message), 'Error loading report: ' + esc(err.message)) + '</td></tr>';
     });
   }
 
@@ -156,12 +161,12 @@
   function loadRooms() {
     api('/api/admin/rooms').then(function (rows) {
       var el = document.getElementById('roomsTableBody');
-      if (!rows.length) { el.innerHTML = '<tr><td colspan="4" class="empty-note">Chưa có phòng họp nào.</td></tr>'; return; }
+      if (!rows.length) { el.innerHTML = '<tr><td colspan="4" class="empty-note">' + bi('Chưa có phòng họp nào.', 'No meeting rooms yet.') + '</td></tr>'; return; }
       el.innerHTML = rows.map(function (r) {
-        return '<tr><td>' + esc(r.name) + '</td><td class="mono">' + r.capacity + ' chỗ</td><td>' + esc(r.floor) + '</td>' +
+        return '<tr><td>' + esc(r.name) + '</td><td class="mono">' + r.capacity + ' chỗ / seats</td><td>' + esc(r.floor) + '</td>' +
           '<td class="table-actions">' +
-            '<button class="icon-btn" data-edit-room="' + r.id + '" type="button" aria-label="Sửa thông tin phòng"><svg class="icon" width="15" height="15"><use href="#i-pencil"></use></svg></button>' +
-            '<button class="icon-btn icon-btn-danger" data-delete-room="' + r.id + '" type="button" aria-label="Xoá phòng"><svg class="icon" width="15" height="15"><use href="#i-trash"></use></svg></button>' +
+            '<button class="icon-btn" data-edit-room="' + r.id + '" type="button" aria-label="Sửa thông tin phòng / Edit room"><svg class="icon" width="15" height="15"><use href="#i-pencil"></use></svg></button>' +
+            '<button class="icon-btn icon-btn-danger" data-delete-room="' + r.id + '" type="button" aria-label="Xoá phòng / Delete room"><svg class="icon" width="15" height="15"><use href="#i-trash"></use></svg></button>' +
           '</td></tr>';
       }).join('');
       Array.prototype.forEach.call(el.querySelectorAll('[data-edit-room]'), function (btn) {
@@ -171,9 +176,9 @@
         btn.addEventListener('click', function () {
           var r = rows.find(function (x) { return x.id === btn.getAttribute('data-delete-room'); });
           if (!r) return;
-          if (!window.confirm('Xoá phòng "' + r.name + '"? Mọi lịch đặt đang có trong phòng này cũng sẽ bị huỷ.')) return;
+          if (!window.confirm('Xoá phòng "' + r.name + '"? Mọi lịch đặt đang có trong phòng này cũng sẽ bị huỷ.\n\n(EN) Delete room "' + r.name + '"? All bookings in this room will also be cancelled.')) return;
           api('/api/admin/rooms/' + r.id, { method: 'DELETE' })
-            .then(function () { toast('Đã xoá phòng "' + r.name + '"', 'ok'); loadAll(); })
+            .then(function () { toast('Đã xoá phòng "' + r.name + '"', 'ok', 'Room "' + r.name + '" deleted'); loadAll(); })
             .catch(function (err) { toast(err.message, 'warn'); });
         });
       });
@@ -183,16 +188,16 @@
   function loadBookings() {
     api('/api/admin/bookings').then(function (rows) {
       var el = document.getElementById('bookingsTableBody');
-      if (!rows.length) { el.innerHTML = '<tr><td colspan="7" class="empty-note">Chưa có lịch đặt nào.</td></tr>'; return; }
+      if (!rows.length) { el.innerHTML = '<tr><td colspan="7" class="empty-note">' + bi('Chưa có lịch đặt nào.', 'No bookings yet.') + '</td></tr>'; return; }
       el.innerHTML = rows.map(function (b) {
         var contact = b.contactName
           ? esc(b.contactName) + (b.contactPhone ? '<br><span class="mono" style="font-size:12px;color:var(--ink-soft)">' + esc(b.contactPhone) + '</span>' : '')
           : '<span class="empty-note" style="padding:0">—</span>';
         return '<tr><td>' + esc(b.roomName) + '</td><td>' + esc(b.companyName) + '</td><td>' + contact + '</td><td class="mono">' + fmtDateShort(b.date) + '</td><td class="mono">' + fmtRange(b.start, b.end) + '</td>' +
-          '<td>' + (b.overLimit ? '<span class="chip chip-warn">Vượt hạn mức</span>' : '<span class="chip chip-ok">Trong hạn</span>') + '</td>' +
+          '<td>' + (b.overLimit ? '<span class="chip chip-warn">' + bi('Vượt hạn mức', 'Over allowance') + '</span>' : '<span class="chip chip-ok">' + bi('Trong hạn', 'Within allowance') + '</span>') + '</td>' +
           '<td class="table-actions">' +
-            '<button class="icon-btn" data-edit-booking="' + b.id + '" type="button" aria-label="Sửa giờ họp"><svg class="icon" width="15" height="15"><use href="#i-pencil"></use></svg></button>' +
-            '<button class="icon-btn icon-btn-danger" data-delete-booking="' + b.id + '" type="button" aria-label="Xoá lịch"><svg class="icon" width="15" height="15"><use href="#i-trash"></use></svg></button>' +
+            '<button class="icon-btn" data-edit-booking="' + b.id + '" type="button" aria-label="Sửa giờ họp / Edit time"><svg class="icon" width="15" height="15"><use href="#i-pencil"></use></svg></button>' +
+            '<button class="icon-btn icon-btn-danger" data-delete-booking="' + b.id + '" type="button" aria-label="Xoá lịch / Delete booking"><svg class="icon" width="15" height="15"><use href="#i-trash"></use></svg></button>' +
           '</td></tr>';
       }).join('');
       Array.prototype.forEach.call(el.querySelectorAll('[data-edit-booking]'), function (btn) {
@@ -200,9 +205,9 @@
       });
       Array.prototype.forEach.call(el.querySelectorAll('[data-delete-booking]'), function (btn) {
         btn.addEventListener('click', function () {
-          if (!window.confirm('Xoá lịch đặt này khỏi hệ thống?')) return;
+          if (!window.confirm('Xoá lịch đặt này khỏi hệ thống?\n\n(EN) Delete this booking from the system?')) return;
           api('/api/admin/bookings/' + btn.getAttribute('data-delete-booking'), { method: 'DELETE' })
-            .then(function () { toast('Đã xoá lịch đặt', 'ok'); loadAll(); })
+            .then(function () { toast('Đã xoá lịch đặt', 'ok', 'Booking deleted'); loadAll(); })
             .catch(function (err) { toast(err.message, 'warn'); });
         });
       });
@@ -220,10 +225,10 @@
         return '<tr><td>' + esc(c.name) + '</td><td>' + esc(c.plan) + '</td>' +
           '<td><div class="mini-meter"><div class="mini-track"><div class="mini-fill is-' + st + '" style="width:' + pct + '%"></div></div><span class="mono mini-figure">' + fmtH(c.usedHours) + ' / ' + fmtH(c.freeHours) + '</span></div></td>' +
           '<td>' + (overage > 0 ? '<span class="mono" style="color:var(--warn);font-weight:700">' + fmtH(overage) + '</span>' : '<span class="mono mini-figure">—</span>') + '</td>' +
-          '<td>' + (c.status === 'active' ? '<span class="chip chip-ok">Đang hoạt động</span>' : '<span class="chip chip-off">Tạm ngưng</span>') + '</td>' +
+          '<td>' + (c.status === 'active' ? '<span class="chip chip-ok">' + bi('Đang hoạt động', 'Active') + '</span>' : '<span class="chip chip-off">' + bi('Tạm ngưng', 'Paused') + '</span>') + '</td>' +
           '<td class="table-actions">' +
-            '<button class="icon-btn" data-edit-company="' + c.id + '" type="button" aria-label="Sửa thông tin công ty"><svg class="icon" width="15" height="15"><use href="#i-pencil"></use></svg></button>' +
-            '<button class="icon-btn icon-btn-danger" data-delete-company="' + c.id + '" type="button" aria-label="Xoá công ty"><svg class="icon" width="15" height="15"><use href="#i-trash"></use></svg></button>' +
+            '<button class="icon-btn" data-edit-company="' + c.id + '" type="button" aria-label="Sửa thông tin công ty / Edit company"><svg class="icon" width="15" height="15"><use href="#i-pencil"></use></svg></button>' +
+            '<button class="icon-btn icon-btn-danger" data-delete-company="' + c.id + '" type="button" aria-label="Xoá công ty / Delete company"><svg class="icon" width="15" height="15"><use href="#i-trash"></use></svg></button>' +
           '</td></tr>';
       }).join('');
       Array.prototype.forEach.call(el.querySelectorAll('[data-edit-company]'), function (btn) {
@@ -233,9 +238,9 @@
         btn.addEventListener('click', function () {
           var c = rows.find(function (r) { return r.id === btn.getAttribute('data-delete-company'); });
           if (!c) return;
-          if (!window.confirm('Xoá "' + c.name + '" khỏi danh sách công ty thuê? Các lịch đặt phòng của công ty này cũng sẽ bị huỷ.')) return;
+          if (!window.confirm('Xoá "' + c.name + '" khỏi danh sách công ty thuê? Các lịch đặt phòng của công ty này cũng sẽ bị huỷ.\n\n(EN) Delete "' + c.name + '" from the tenant list? This company\'s bookings will also be cancelled.')) return;
           api('/api/admin/companies/' + c.id, { method: 'DELETE' })
-            .then(function () { toast('Đã xoá công ty "' + c.name + '"', 'ok'); loadAll(); })
+            .then(function () { toast('Đã xoá công ty "' + c.name + '"', 'ok', 'Company "' + c.name + '" deleted'); loadAll(); })
             .catch(function (err) { toast(err.message, 'warn'); });
         });
       });
@@ -252,19 +257,19 @@
     var startOpts = '';
     for (var h = OPEN; h < CLOSE; h++) startOpts += '<option value="' + h + '"' + (h === b.start ? ' selected' : '') + '>' + fmtHour(h) + '</option>';
     var durOpts = '';
-    for (var d = 1; d <= MAX_DUR; d++) durOpts += '<option value="' + d + '"' + (d === (b.end - b.start) ? ' selected' : '') + '>' + d + ' giờ</option>';
+    for (var d = 1; d <= MAX_DUR; d++) durOpts += '<option value="' + d + '"' + (d === (b.end - b.start) ? ' selected' : '') + '>' + d + ' giờ / ' + d + ' hr</option>';
 
     var dlg = document.getElementById('modalDialog');
     dlg.innerHTML =
-      '<div class="modal-head"><h2 id="modalTitle">Sửa giờ họp — ' + esc(b.roomName) + '</h2>' +
-      '<button class="icon-btn" id="modalCloseBtn" type="button" aria-label="Đóng"><svg class="icon" width="15" height="15"><use href="#i-x"></use></svg></button></div>' +
-      '<p class="hint" style="margin-bottom:14px">Công ty: <strong style="color:var(--ink)">' + esc(b.companyName) + '</strong>' +
-      (b.contactName ? '<br>Người đặt: <strong style="color:var(--ink)">' + esc(b.contactName) + (b.contactPhone ? ' · ' + esc(b.contactPhone) : '') + '</strong>' : '') + '</p>' +
+      '<div class="modal-head"><h2 id="modalTitle">' + bi('Sửa giờ họp — ' + esc(b.roomName), 'Edit time — ' + esc(b.roomName)) + '</h2>' +
+      '<button class="icon-btn" id="modalCloseBtn" type="button" aria-label="Đóng / Close"><svg class="icon" width="15" height="15"><use href="#i-x"></use></svg></button></div>' +
+      '<p class="hint" style="margin-bottom:14px">' + bi('Công ty', 'Company') + ': <strong style="color:var(--ink)">' + esc(b.companyName) + '</strong>' +
+      (b.contactName ? '<br>' + bi('Người đặt', 'Booker') + ': <strong style="color:var(--ink)">' + esc(b.contactName) + (b.contactPhone ? ' · ' + esc(b.contactPhone) : '') + '</strong>' : '') + '</p>' +
       '<div id="editBookingError"></div>' +
-      '<div class="field"><label for="editDate">Ngày</label><input type="date" id="editDate" value="' + b.date + '"></div>' +
-      '<div class="field"><label for="editStart">Giờ bắt đầu</label><select id="editStart">' + startOpts + '</select></div>' +
-      '<div class="field"><label for="editDur">Thời lượng</label><select id="editDur">' + durOpts + '</select></div>' +
-      '<div class="modal-actions"><button class="btn btn-ghost" id="modalCancelBtn" type="button">Huỷ</button><button class="btn btn-primary" id="modalSaveBtn" type="button">Lưu thay đổi</button></div>';
+      '<div class="field"><label for="editDate">' + bi('Ngày', 'Date') + '</label><input type="date" id="editDate" value="' + b.date + '"></div>' +
+      '<div class="field"><label for="editStart">' + bi('Giờ bắt đầu', 'Start time') + '</label><select id="editStart">' + startOpts + '</select></div>' +
+      '<div class="field"><label for="editDur">' + bi('Thời lượng', 'Duration') + '</label><select id="editDur">' + durOpts + '</select></div>' +
+      '<div class="modal-actions"><button class="btn btn-ghost" id="modalCancelBtn" type="button">' + bi('Huỷ', 'Cancel') + '</button><button class="btn btn-primary" id="modalSaveBtn" type="button">' + bi('Lưu thay đổi', 'Save changes') + '</button></div>';
     document.getElementById('modalOverlay').hidden = false;
     document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
     document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
@@ -278,7 +283,7 @@
         }
       }).then(function () {
         closeModal();
-        toast('Đã cập nhật giờ họp cho ' + b.roomName, 'ok');
+        toast('Đã cập nhật giờ họp cho ' + b.roomName, 'ok', 'Updated the meeting time for ' + b.roomName);
         loadAll();
       }).catch(function (err) {
         document.getElementById('editBookingError').innerHTML = '<div class="modal-error">' + esc(err.message) + '</div>';
@@ -291,17 +296,17 @@
     var c = existing || { name: '', plan: '', freeHours: 18, status: 'active' };
     var dlg = document.getElementById('modalDialog');
     dlg.innerHTML =
-      '<div class="modal-head"><h2 id="modalTitle">' + (editing ? 'Sửa thông tin công ty' : 'Thêm công ty') + '</h2>' +
-      '<button class="icon-btn" id="modalCloseBtn" type="button" aria-label="Đóng"><svg class="icon" width="15" height="15"><use href="#i-x"></use></svg></button></div>' +
+      '<div class="modal-head"><h2 id="modalTitle">' + (editing ? bi('Sửa thông tin công ty', 'Edit company') : bi('Thêm công ty', 'Add company')) + '</h2>' +
+      '<button class="icon-btn" id="modalCloseBtn" type="button" aria-label="Đóng / Close"><svg class="icon" width="15" height="15"><use href="#i-x"></use></svg></button></div>' +
       '<div id="companyModalError"></div>' +
-      '<div class="field"><label for="companyName">Tên công ty</label><input type="text" id="companyName" value="' + esc(c.name) + '" maxlength="80"></div>' +
-      '<div class="field"><label for="companyPlan">Gói dịch vụ</label><input type="text" id="companyPlan" value="' + esc(c.plan) + '" maxlength="80" placeholder="VD: Văn phòng riêng · 6 chỗ"></div>' +
-      '<div class="field"><label for="companyFree">Giờ họp miễn phí / tháng</label><input type="text" inputmode="decimal" id="companyFree" value="' + c.freeHours + '"></div>' +
-      '<div class="field"><label for="companyStatus">Trạng thái</label><select id="companyStatus">' +
-        '<option value="active"' + (c.status === 'active' ? ' selected' : '') + '>Đang hoạt động</option>' +
-        '<option value="paused"' + (c.status === 'paused' ? ' selected' : '') + '>Tạm ngưng</option>' +
+      '<div class="field"><label for="companyName">' + bi('Tên công ty', 'Company name') + '</label><input type="text" id="companyName" value="' + esc(c.name) + '" maxlength="80"></div>' +
+      '<div class="field"><label for="companyPlan">' + bi('Gói dịch vụ', 'Plan') + '</label><input type="text" id="companyPlan" value="' + esc(c.plan) + '" maxlength="80" placeholder="VD: Văn phòng riêng · 6 chỗ / e.g. Private office · 6 seats"></div>' +
+      '<div class="field"><label for="companyFree">' + bi('Giờ họp miễn phí / tháng', 'Free hours / month') + '</label><input type="text" inputmode="decimal" id="companyFree" value="' + c.freeHours + '"></div>' +
+      '<div class="field"><label for="companyStatus">' + bi('Trạng thái', 'Status') + '</label><select id="companyStatus">' +
+        '<option value="active"' + (c.status === 'active' ? ' selected' : '') + '>Đang hoạt động / Active</option>' +
+        '<option value="paused"' + (c.status === 'paused' ? ' selected' : '') + '>Tạm ngưng / Paused</option>' +
       '</select></div>' +
-      '<div class="modal-actions"><button class="btn btn-ghost" id="modalCancelBtn" type="button">Huỷ</button><button class="btn btn-primary" id="modalSaveBtn" type="button">Lưu</button></div>';
+      '<div class="modal-actions"><button class="btn btn-ghost" id="modalCancelBtn" type="button">' + bi('Huỷ', 'Cancel') + '</button><button class="btn btn-primary" id="modalSaveBtn" type="button">' + bi('Lưu', 'Save') + '</button></div>';
     document.getElementById('modalOverlay').hidden = false;
     document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
     document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
@@ -315,7 +320,7 @@
       var req = editing ? api('/api/admin/companies/' + c.id, { method: 'PUT', body: body }) : api('/api/admin/companies', { method: 'POST', body: body });
       req.then(function () {
         closeModal();
-        toast(editing ? ('Đã cập nhật "' + body.name + '"') : ('Đã thêm công ty "' + body.name + '"'), 'ok');
+        toast(editing ? ('Đã cập nhật "' + body.name + '"') : ('Đã thêm công ty "' + body.name + '"'), 'ok', editing ? ('Updated "' + body.name + '"') : ('Added company "' + body.name + '"'));
         loadAll();
       }).catch(function (err) {
         document.getElementById('companyModalError').innerHTML = '<div class="modal-error">' + esc(err.message) + '</div>';
@@ -328,13 +333,13 @@
     var r = existing || { name: '', capacity: 4, floor: '' };
     var dlg = document.getElementById('modalDialog');
     dlg.innerHTML =
-      '<div class="modal-head"><h2 id="modalTitle">' + (editing ? 'Sửa thông tin phòng' : 'Thêm phòng họp') + '</h2>' +
-      '<button class="icon-btn" id="modalCloseBtn" type="button" aria-label="Đóng"><svg class="icon" width="15" height="15"><use href="#i-x"></use></svg></button></div>' +
+      '<div class="modal-head"><h2 id="modalTitle">' + (editing ? bi('Sửa thông tin phòng', 'Edit room') : bi('Thêm phòng họp', 'Add meeting room')) + '</h2>' +
+      '<button class="icon-btn" id="modalCloseBtn" type="button" aria-label="Đóng / Close"><svg class="icon" width="15" height="15"><use href="#i-x"></use></svg></button></div>' +
       '<div id="roomModalError"></div>' +
-      '<div class="field"><label for="roomName">Tên phòng</label><input type="text" id="roomName" value="' + esc(r.name) + '" maxlength="60" placeholder="VD: Cedar"></div>' +
-      '<div class="field"><label for="roomCapacity">Sức chứa (số chỗ)</label><input type="text" inputmode="numeric" id="roomCapacity" value="' + r.capacity + '"></div>' +
-      '<div class="field"><label for="roomFloor">Tầng</label><input type="text" id="roomFloor" value="' + esc(r.floor) + '" maxlength="40" placeholder="VD: Tầng 8"></div>' +
-      '<div class="modal-actions"><button class="btn btn-ghost" id="modalCancelBtn" type="button">Huỷ</button><button class="btn btn-primary" id="modalSaveBtn" type="button">Lưu</button></div>';
+      '<div class="field"><label for="roomName">' + bi('Tên phòng', 'Room name') + '</label><input type="text" id="roomName" value="' + esc(r.name) + '" maxlength="60" placeholder="VD: Cedar"></div>' +
+      '<div class="field"><label for="roomCapacity">' + bi('Sức chứa (số chỗ)', 'Capacity (seats)') + '</label><input type="text" inputmode="numeric" id="roomCapacity" value="' + r.capacity + '"></div>' +
+      '<div class="field"><label for="roomFloor">' + bi('Tầng', 'Floor') + '</label><input type="text" id="roomFloor" value="' + esc(r.floor) + '" maxlength="40" placeholder="VD: Tầng 8 / e.g. Floor 8"></div>' +
+      '<div class="modal-actions"><button class="btn btn-ghost" id="modalCancelBtn" type="button">' + bi('Huỷ', 'Cancel') + '</button><button class="btn btn-primary" id="modalSaveBtn" type="button">' + bi('Lưu', 'Save') + '</button></div>';
     document.getElementById('modalOverlay').hidden = false;
     document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
     document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
@@ -347,7 +352,7 @@
       var req = editing ? api('/api/admin/rooms/' + r.id, { method: 'PUT', body: body }) : api('/api/admin/rooms', { method: 'POST', body: body });
       req.then(function () {
         closeModal();
-        toast(editing ? ('Đã cập nhật phòng "' + body.name + '"') : ('Đã thêm phòng "' + body.name + '"'), 'ok');
+        toast(editing ? ('Đã cập nhật phòng "' + body.name + '"') : ('Đã thêm phòng "' + body.name + '"'), 'ok', editing ? ('Updated room "' + body.name + '"') : ('Added room "' + body.name + '"'));
         loadAll();
       }).catch(function (err) {
         document.getElementById('roomModalError').innerHTML = '<div class="modal-error">' + esc(err.message) + '</div>';

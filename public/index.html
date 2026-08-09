@@ -14,52 +14,52 @@
       <a href="/">
         <span class="plaque"><svg class="icon" width="20" height="20"><use href="#i-door"></use></svg></span>
         <div>
-          <p class="brand-eyebrow">Văn phòng trọn gói</p>
-          <h1 class="brand-name">SB SPACE HOLDING<span class="brand-name-sub">Đặt phòng họp</span></h1>
+          <p class="brand-eyebrow">Văn phòng trọn gói <span class="en">Serviced Office</span></p>
+          <h1 class="brand-name">SB SPACE HOLDING<span class="brand-name-sub">Đặt phòng họp <span class="en">Meeting Room Booking</span></span></h1>
         </div>
       </a>
     </div>
     <div class="topbar-actions">
-      <a class="admin-link" href="/admin.html">Ban quản trị</a>
+      <a class="admin-link" href="/admin.html">Ban quản trị <span class="en">Admin</span></a>
     </div>
   </header>
 
   <main style="display:flex;flex-direction:column;gap:16px">
-    <section class="usage-strip card" id="usageStrip" aria-label="Hạn mức giờ họp miễn phí">
-      <p class="hint">Đang tải…</p>
+    <section class="usage-strip card" id="usageStrip" aria-label="Hạn mức giờ họp miễn phí / Free-hours allowance">
+      <p class="hint">Đang tải… <span class="en">Loading…</span></p>
     </section>
 
     <section class="controls-bar card">
-      <div class="room-tabs" id="roomTabs" role="tablist" aria-label="Chọn phòng họp"></div>
+      <div class="room-tabs" id="roomTabs" role="tablist" aria-label="Chọn phòng họp / Choose a room"></div>
       <div class="date-nav">
-        <button class="icon-btn" id="prevDay" type="button" aria-label="Ngày trước"><svg class="icon" width="17" height="17"><use href="#i-chevron-left"></use></svg></button>
+        <button class="icon-btn" id="prevDay" type="button" aria-label="Ngày trước / Previous day"><svg class="icon" width="17" height="17"><use href="#i-chevron-left"></use></svg></button>
         <button class="date-display" id="dateDisplayBtn" type="button">
           <svg class="icon" width="15" height="15"><use href="#i-calendar"></use></svg>
           <span id="dateDisplayText" class="mono"></span>
         </button>
-        <input type="date" id="datePicker" class="date-input-hidden" aria-label="Chọn ngày đặt phòng">
-        <button class="icon-btn" id="nextDay" type="button" aria-label="Ngày sau"><svg class="icon" width="17" height="17"><use href="#i-chevron-right"></use></svg></button>
+        <input type="date" id="datePicker" class="date-input-hidden" aria-label="Chọn ngày đặt phòng / Choose a date">
+        <button class="icon-btn" id="nextDay" type="button" aria-label="Ngày sau / Next day"><svg class="icon" width="17" height="17"><use href="#i-chevron-right"></use></svg></button>
       </div>
     </section>
 
     <section class="booking-layout">
       <div class="grid-panel card">
         <div class="grid-panel-head">
-          <h2 id="gridRoomTitle">Lịch phòng theo giờ</h2>
-          <p class="hint">Nguyên tắc đặt trước – phục vụ trước: khung giờ được giữ cho công ty đặt sớm nhất.</p>
+          <h2 id="gridRoomTitle">Lịch phòng theo giờ <span class="en">Hourly schedule</span></h2>
+          <p class="hint">Nguyên tắc đặt trước – phục vụ trước: khung giờ được giữ cho công ty đặt sớm nhất. <span class="en">First come, first served — a time slot is held for whichever company books it first.</span></p>
         </div>
-        <div class="slot-grid" id="slotGrid"><p class="hint">Đang tải…</p></div>
+        <div class="slot-grid" id="slotGrid"><p class="hint">Đang tải… <span class="en">Loading…</span></p></div>
       </div>
       <aside class="booking-panel card" id="bookingPanel"></aside>
     </section>
 
     <section class="my-bookings card">
-      <h2>Lịch đặt của bạn</h2>
-      <div id="myBookingsList"><p class="empty-note">Đang tải…</p></div>
+      <h2>Lịch đặt của công ty bạn <span class="en">Your company's bookings</span></h2>
+      <div id="myBookingsList"><p class="empty-note">Đang tải… <span class="en">Loading…</span></p></div>
     </section>
   </main>
 
-  <p class="footnote">First in, first served — mỗi công ty được miễn phí 18 giờ phòng họp mỗi tháng, phần vượt mức sẽ được ghi nhận riêng.</p>
+  <p class="footnote">Nguyên tắc đặt trước – phục vụ trước — mỗi công ty được miễn phí 18 giờ phòng họp mỗi tháng, phần vượt mức sẽ được ghi nhận riêng.<br><span class="en">First come, first served — each company gets 18 free meeting-room hours per month; hours beyond that are recorded separately for billing.</span></p>
 </div>
 
 <div class="toast-stack" id="toastStack" aria-live="polite"></div>

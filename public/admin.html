@@ -13,16 +13,16 @@
   <div class="card login-card">
     <div>
       <span class="plaque" style="margin-bottom:14px"><svg class="icon" width="20" height="20"><use href="#i-door"></use></svg></span>
-      <h2>Đăng nhập ban quản trị</h2>
-      <p class="hint">SB SPACE HOLDING · Văn phòng trọn gói</p>
+      <h2>Đăng nhập ban quản trị <span class="en">Admin sign-in</span></h2>
+      <p class="hint">SB SPACE HOLDING · Văn phòng trọn gói <span class="en">Serviced Office</span></p>
     </div>
     <div class="modal-error login-error" id="loginError"></div>
     <form id="loginForm">
-      <div class="field"><label for="loginUser">Tên đăng nhập</label><input type="text" id="loginUser" autocomplete="username" required></div>
-      <div class="field"><label for="loginPass">Mật khẩu</label><input type="password" id="loginPass" autocomplete="current-password" required></div>
-      <button class="btn btn-primary btn-block" type="submit" id="loginBtn">Đăng nhập</button>
+      <div class="field"><label for="loginUser">Tên đăng nhập <span class="en">Username</span></label><input type="text" id="loginUser" autocomplete="username" required></div>
+      <div class="field"><label for="loginPass">Mật khẩu <span class="en">Password</span></label><input type="password" id="loginPass" autocomplete="current-password" required></div>
+      <button class="btn btn-primary btn-block" type="submit" id="loginBtn">Đăng nhập <span class="en">Sign in</span></button>
     </form>
-    <a href="/" class="hint" style="text-align:center">← Về trang đặt phòng</a>
+    <a href="/" class="hint" style="text-align:center">← Về trang đặt phòng <span class="en">Back to booking</span></a>
   </div>
 </div>
 
@@ -32,14 +32,14 @@
       <a href="/">
         <span class="plaque"><svg class="icon" width="20" height="20"><use href="#i-door"></use></svg></span>
         <div>
-          <p class="brand-eyebrow">Văn phòng trọn gói</p>
-          <h1 class="brand-name">SB SPACE HOLDING<span class="brand-name-sub">Ban quản trị</span></h1>
+          <p class="brand-eyebrow">Văn phòng trọn gói <span class="en">Serviced Office</span></p>
+          <h1 class="brand-name">SB SPACE HOLDING<span class="brand-name-sub">Ban quản trị <span class="en">Admin</span></span></h1>
         </div>
       </a>
     </div>
     <div class="topbar-actions">
       <span class="hint" id="whoami"></span>
-      <button class="admin-link" id="logoutBtn" type="button" style="border:1px solid var(--border);background:none">Đăng xuất</button>
+      <button class="admin-link" id="logoutBtn" type="button" style="border:1px solid var(--border);background:none">Đăng xuất <span class="en">Sign out</span></button>
     </div>
   </header>
 
@@ -48,29 +48,29 @@
 
     <section class="table-card card">
       <div class="table-card-head">
-        <div><h2>Báo cáo giờ vượt hạn mức theo tháng</h2><p class="hint">Dùng cuối mỗi tháng để biết công ty nào phát sinh phí và tải file Excel lưu trữ/gửi kế toán.</p></div>
+        <div><h2>Báo cáo giờ vượt hạn mức theo tháng <span class="en">Monthly overage report</span></h2><p class="hint">Dùng cuối mỗi tháng để biết công ty nào phát sinh phí và tải file Excel lưu trữ/gửi kế toán. <span class="en">Use at month-end to see which companies owe fees, and download an Excel file for records or accounting.</span></p></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <input type="month" id="reportMonth" class="input-inline">
-          <button class="btn btn-ghost" id="viewReportBtn" type="button">Xem báo cáo</button>
-          <a class="btn btn-primary" id="downloadReportBtn" href="#" rel="noopener"><svg class="icon"><use href="#i-download"></use></svg>Tải file Excel</a>
+          <button class="btn btn-ghost" id="viewReportBtn" type="button">Xem báo cáo <span class="en">View report</span></button>
+          <a class="btn btn-primary" id="downloadReportBtn" href="#" rel="noopener"><svg class="icon"><use href="#i-download"></use></svg>Tải file Excel <span class="en">Download Excel</span></a>
         </div>
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Công ty</th><th>Giờ miễn phí</th><th>Giờ đã dùng</th><th>Giờ vượt (tính phí)</th><th>Số lượt đặt</th></tr></thead>
-          <tbody id="reportTableBody"><tr><td colspan="5" class="empty-note">Chọn tháng rồi bấm "Xem báo cáo".</td></tr></tbody>
+          <thead><tr><th>Công ty <span class="en">Company</span></th><th>Giờ miễn phí <span class="en">Free hours</span></th><th>Giờ đã dùng <span class="en">Used</span></th><th>Giờ vượt (tính phí) <span class="en">Overage (billable)</span></th><th>Số lượt đặt <span class="en">Bookings</span></th></tr></thead>
+          <tbody id="reportTableBody"><tr><td colspan="5" class="empty-note">Chọn tháng rồi bấm "Xem báo cáo". <span class="en">Choose a month and click "View report".</span></td></tr></tbody>
         </table>
       </div>
     </section>
 
     <section class="table-card card">
       <div class="table-card-head">
-        <div><h2>Phòng họp</h2><p class="hint">Sửa tên, sức chứa, tầng — hoặc xoá phòng không còn dùng.</p></div>
-        <button class="btn btn-primary" id="addRoomBtn" type="button"><svg class="icon"><use href="#i-plus"></use></svg>Thêm phòng</button>
+        <div><h2>Phòng họp <span class="en">Meeting rooms</span></h2><p class="hint">Sửa tên, sức chứa, tầng — hoặc xoá phòng không còn dùng. <span class="en">Edit name, capacity, floor — or delete a room no longer in use.</span></p></div>
+        <button class="btn btn-primary" id="addRoomBtn" type="button"><svg class="icon"><use href="#i-plus"></use></svg>Thêm phòng <span class="en">Add room</span></button>
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Tên phòng</th><th>Sức chứa</th><th>Tầng</th><th></th></tr></thead>
+          <thead><tr><th>Tên phòng <span class="en">Room</span></th><th>Sức chứa <span class="en">Capacity</span></th><th>Tầng <span class="en">Floor</span></th><th></th></tr></thead>
           <tbody id="roomsTableBody"></tbody>
         </table>
       </div>
@@ -78,11 +78,11 @@
 
     <section class="table-card card">
       <div class="table-card-head">
-        <div><h2>Quản lý lịch đặt</h2><p class="hint">Sửa giờ hoặc huỷ lịch thay khách khi có thay đổi. Cột "Người đặt" chỉ hiển thị ở đây cho ban quản trị, không công khai cho khách khác.</p></div>
+        <div><h2>Quản lý lịch đặt <span class="en">Manage bookings</span></h2><p class="hint">Sửa giờ hoặc huỷ lịch thay khách khi có thay đổi. Cột "Người đặt" chỉ hiển thị ở đây cho ban quản trị, không công khai cho khách khác. <span class="en">Edit the time or cancel a booking on the customer's behalf. The "Booker" column is admin-only and never shown to other companies.</span></p></div>
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Phòng</th><th>Công ty</th><th>Người đặt</th><th>Ngày</th><th>Giờ</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Phòng <span class="en">Room</span></th><th>Công ty <span class="en">Company</span></th><th>Người đặt <span class="en">Booker</span></th><th>Ngày <span class="en">Date</span></th><th>Giờ <span class="en">Time</span></th><th>Trạng thái <span class="en">Status</span></th><th></th></tr></thead>
           <tbody id="bookingsTableBody"></tbody>
         </table>
       </div>
@@ -90,12 +90,12 @@
 
     <section class="table-card card">
       <div class="table-card-head">
-        <div><h2>Công ty thuê văn phòng</h2><p class="hint">Cập nhật, thêm mới hoặc xoá thông tin công ty.</p></div>
-        <button class="btn btn-primary" id="addCompanyBtn" type="button"><svg class="icon"><use href="#i-plus"></use></svg>Thêm công ty</button>
+        <div><h2>Công ty thuê văn phòng <span class="en">Tenant companies</span></h2><p class="hint">Cập nhật, thêm mới hoặc xoá thông tin công ty. <span class="en">Update, add, or remove company records.</span></p></div>
+        <button class="btn btn-primary" id="addCompanyBtn" type="button"><svg class="icon"><use href="#i-plus"></use></svg>Thêm công ty <span class="en">Add company</span></button>
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Công ty</th><th>Gói dịch vụ</th><th>Giờ họp miễn phí</th><th>Giờ vượt (tính phí)</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Công ty <span class="en">Company</span></th><th>Gói dịch vụ <span class="en">Plan</span></th><th>Giờ họp miễn phí <span class="en">Free hours</span></th><th>Giờ vượt (tính phí) <span class="en">Overage (billable)</span></th><th>Trạng thái <span class="en">Status</span></th><th></th></tr></thead>
           <tbody id="companiesTableBody"></tbody>
         </table>
       </div>
