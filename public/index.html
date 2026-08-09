@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ATRIUM · Đặt phòng họp</title>
+<meta name="description" content="Đặt phòng họp cho khách thuê văn phòng trọn gói ATRIUM — theo nguyên tắc đặt trước, phục vụ trước.">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <a href="/">
+        <span class="plaque"><svg class="icon" width="20" height="20"><use href="#i-door"></use></svg></span>
+        <div>
+          <p class="brand-eyebrow">Văn phòng trọn gói</p>
+          <h1 class="brand-name">ATRIUM<span class="brand-name-sub">Đặt phòng họp</span></h1>
+        </div>
+      </a>
+    </div>
+    <div class="topbar-actions">
+      <a class="admin-link" href="/admin.html">Ban quản trị</a>
+    </div>
+  </header>
+
+  <main style="display:flex;flex-direction:column;gap:16px">
+    <section class="usage-strip card" id="usageStrip" aria-label="Hạn mức giờ họp miễn phí">
+      <p class="hint">Đang tải…</p>
+    </section>
+
+    <section class="controls-bar card">
+      <div class="room-tabs" id="roomTabs" role="tablist" aria-label="Chọn phòng họp"></div>
+      <div class="date-nav">
+        <button class="icon-btn" id="prevDay" type="button" aria-label="Ngày trước"><svg class="icon" width="17" height="17"><use href="#i-chevron-left"></use></svg></button>
+        <button class="date-display" id="dateDisplayBtn" type="button">
+          <svg class="icon" width="15" height="15"><use href="#i-calendar"></use></svg>
+          <span id="dateDisplayText" class="mono"></span>
+        </button>
+        <input type="date" id="datePicker" class="date-input-hidden" aria-label="Chọn ngày đặt phòng">
+        <button class="icon-btn" id="nextDay" type="button" aria-label="Ngày sau"><svg class="icon" width="17" height="17"><use href="#i-chevron-right"></use></svg></button>
+      </div>
+    </section>
+
+    <section class="booking-layout">
+      <div class="grid-panel card">
+        <div class="grid-panel-head">
+          <h2 id="gridRoomTitle">Lịch phòng theo giờ</h2>
+          <p class="hint">Nguyên tắc đặt trước – phục vụ trước: khung giờ được giữ cho công ty đặt sớm nhất.</p>
+        </div>
+        <div class="slot-grid" id="slotGrid"><p class="hint">Đang tải…</p></div>
+      </div>
+      <aside class="booking-panel card" id="bookingPanel"></aside>
+    </section>
+
+    <section class="my-bookings card">
+      <h2>Lịch đặt của bạn</h2>
+      <div id="myBookingsList"><p class="empty-note">Đang tải…</p></div>
+    </section>
+  </main>
+
+  <p class="footnote">First in, first served — mỗi công ty được miễn phí 18 giờ phòng họp mỗi tháng, phần vượt mức sẽ được ghi nhận riêng.</p>
+</div>
+
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+<defs>
+<symbol id="i-door" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.5"></rect><circle cx="14.3" cy="12" r=".9" fill="currentColor" stroke="none"></circle></symbol>
+<symbol id="i-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 5 8 12 15 19"></polyline></symbol>
+<symbol id="i-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 5 16 12 9 19"></polyline></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"></rect><line x1="3.5" y1="9.7" x2="20.5" y2="9.7"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="16" y1="3" x2="16" y2="7"></line></symbol>
+<symbol id="i-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.3"></circle><polyline points="8.3 12.3 10.8 15 15.7 9.2"></polyline></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.8 21 20 3 20Z"></path><line x1="12" y1="9.7" x2="12" y2="14.3"></line><circle cx="12" cy="17.1" r=".2" fill="currentColor"></circle></symbol>
+</defs>
+</svg>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
