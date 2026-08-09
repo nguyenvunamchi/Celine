@@ -11,13 +11,15 @@ function currentMonth() {
 }
 
 function companyPublicView(c, bookings, month) {
+  const summary = rules.companyMonthSummary(bookings, c, month);
   return {
     id: c.id,
     name: c.name,
     plan: c.plan,
     status: c.status,
     freeHours: c.freeHours,
-    usedHours: rules.usedHoursInMonth(bookings, c.id, month + '-01'),
+    usedHours: summary.usedHours,
+    overageHours: summary.overageHours,
     month
   };
 }

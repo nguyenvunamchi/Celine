@@ -48,6 +48,23 @@
 
     <section class="table-card card">
       <div class="table-card-head">
+        <div><h2>Báo cáo giờ vượt hạn mức theo tháng</h2><p class="hint">Dùng cuối mỗi tháng để biết công ty nào phát sinh phí và tải file Excel lưu trữ/gửi kế toán.</p></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="month" id="reportMonth" class="input-inline">
+          <button class="btn btn-ghost" id="viewReportBtn" type="button">Xem báo cáo</button>
+          <a class="btn btn-primary" id="downloadReportBtn" href="#" rel="noopener"><svg class="icon"><use href="#i-download"></use></svg>Tải file Excel</a>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Công ty</th><th>Giờ miễn phí</th><th>Giờ đã dùng</th><th>Giờ vượt (tính phí)</th><th>Số lượt đặt</th></tr></thead>
+          <tbody id="reportTableBody"><tr><td colspan="5" class="empty-note">Chọn tháng rồi bấm "Xem báo cáo".</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="table-card card">
+      <div class="table-card-head">
         <div><h2>Phòng họp</h2><p class="hint">Sửa tên, sức chứa, tầng — hoặc xoá phòng không còn dùng.</p></div>
         <button class="btn btn-primary" id="addRoomBtn" type="button"><svg class="icon"><use href="#i-plus"></use></svg>Thêm phòng</button>
       </div>
@@ -78,7 +95,7 @@
       </div>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Công ty</th><th>Gói dịch vụ</th><th>Giờ họp miễn phí</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Công ty</th><th>Gói dịch vụ</th><th>Giờ họp miễn phí</th><th>Giờ vượt (tính phí)</th><th>Trạng thái</th><th></th></tr></thead>
           <tbody id="companiesTableBody"></tbody>
         </table>
       </div>
@@ -99,6 +116,7 @@
 <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></symbol>
 <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.3L16 4.9a1.6 1.6 0 0 1 2.3 0l.8.8a1.6 1.6 0 0 1 0 2.3L8.2 19 4 20Z"></path><line x1="14.2" y1="6.7" x2="17.3" y2="9.8"></line></symbol>
 <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14"></path><path d="M9 7V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2"></path><path d="M7 7l1 12.5A1.5 1.5 0 0 0 9.5 21h5a1.5 1.5 0 0 0 1.5-1.5L18 7"></path><line x1="10" y1="11" x2="10" y2="16.3"></line><line x1="14" y1="11" x2="14" y2="16.3"></line></symbol>
+<symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11.5"></path><polyline points="7.5 10.5 12 15.3 16.5 10.5"></polyline><path d="M4.5 16.5v2.3a1.7 1.7 0 0 0 1.7 1.7h11.6a1.7 1.7 0 0 0 1.7-1.7v-2.3"></path></symbol>
 </defs>
 </svg>
 

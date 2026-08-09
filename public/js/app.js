@@ -103,11 +103,12 @@
     var c = company(state.companyId);
     var el = document.getElementById('usageStrip');
     if (!c) { el.innerHTML = '<p class="hint">Chưa có công ty nào trong hệ thống.</p>'; return; }
+    var overage = c.overageHours || 0;
     var ratio = c.usedHours / c.freeHours;
-    var st = c.usedHours > c.freeHours ? 'danger' : ratio >= 0.8 ? 'warn' : 'ok';
+    var st = overage > 0 ? 'danger' : ratio >= 0.8 ? 'warn' : 'ok';
     var pct = Math.min(100, Math.round(ratio * 100));
     var badgeText = st === 'danger' ? 'Đã vượt hạn mức' : st === 'warn' ? 'Sắp đạt hạn mức' : 'Trong hạn mức';
-    var remaining = c.freeHours - c.usedHours;
+    var remaining = Math.max(0, c.freeHours - c.usedHours);
     var opts = companies.map(function (x) {
       return '<option value="' + x.id + '"' + (x.id === state.companyId ? ' selected' : '') + '>' + esc(x.name) + '</option>';
     }).join('');
@@ -128,7 +129,12 @@
           '</div>' +
           '<div class="usage-track"><div class="usage-fill is-' + st + '" style="width:' + pct + '%"></div></div>' +
           '<div class="usage-figures"><span><span class="mono">' + fmtH(c.usedHours) + '</span> / <span class="mono">' + fmtH(c.freeHours) + '</span> đã dùng</span>' +
-          '<span>' + (remaining >= 0 ? 'còn ' + fmtH(remaining) : 'vượt ' + fmtH(Math.abs(remaining))) + '</span></div>' +
+          (overage > 0 ? '' : '<span>còn ' + fmtH(remaining) + '</span>') +
+          '</div>' +
+          (overage > 0
+            ? '<div class="overage-callout"><svg class="icon" width="16" height="16"><use href="#i-alert"></use></svg>' +
+              '<span><strong class="mono">' + fmtH(overage) + '</strong> vượt hạn mức tháng này — tính là giờ phát sinh, sẽ được tính phí thêm.</span></div>'
+            : '') +
         '</div>' +
       '</div>';
     document.getElementById('roleSelect').addEventListener('change', function (e) {

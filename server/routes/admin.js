@@ -6,6 +6,7 @@ const db = require('../db');
 const rules = require('../lib/booking-rules');
 const auth = require('../lib/auth');
 const requireAdmin = require('../middleware/requireAdmin');
+const { buildReportData, buildMonthlyWorkbook } = require('../lib/report');
 
 const router = express.Router();
 const json = express.json();
@@ -153,11 +154,10 @@ router.get('/companies', (req, res) => {
   const state = db.get();
   const month = currentMonth();
   res.json(
-    state.companies.map((c) => ({
-      ...c,
-      usedHours: rules.usedHoursInMonth(state.bookings, c.id, month + '-01'),
-      month
-    }))
+    state.companies.map((c) => {
+      const summary = rules.companyMonthSummary(state.bookings, c, month);
+      return { ...c, usedHours: summary.usedHours, overageHours: summary.overageHours, month };
+    })
   );
 });
 
@@ -221,6 +221,33 @@ router.delete('/companies/:id', (req, res) => {
     s.companies = s.companies.filter((c) => c.id !== id);
   });
   res.json({ ok: true });
+});
+
+// ---------- monthly billing report ----------
+
+function resolveMonth(req) {
+  return /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : currentMonth();
+}
+
+// GET /api/admin/reports/monthly?month=YYYY-MM — JSON preview shown in the dashboard.
+router.get('/reports/monthly', (req, res) => {
+  const month = resolveMonth(req);
+  res.json(buildReportData(db.get(), month));
+});
+
+// GET /api/admin/reports/monthly.xlsx?month=YYYY-MM — same data as a downloadable file.
+router.get('/reports/monthly.xlsx', async (req, res) => {
+  const month = resolveMonth(req);
+  try {
+    const wb = await buildMonthlyWorkbook(db.get(), month);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="bao-cao-gio-hop-${month}.xlsx"`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Failed to build monthly report:', err);
+    res.status(500).json({ error: 'Không tạo được file báo cáo. Vui lòng thử lại.' });
+  }
 });
 
 // ---------- rooms ----------

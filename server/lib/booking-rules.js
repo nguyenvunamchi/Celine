@@ -56,6 +56,18 @@ function usedHoursInMonth(bookings, companyId, dateStr) {
     .reduce((sum, b) => sum + (b.end - b.start), 0);
 }
 
+// One company's billing picture for a given 'YYYY-MM' month: how many hours it
+// used, how many of those are billable overage past its free-hours allowance,
+// and how many separate bookings made up that total. Shared by the customer
+// usage strip, the admin companies table, and the monthly Excel report so all
+// three always agree on the same number.
+function companyMonthSummary(bookings, company, month) {
+  const monthBookings = bookings.filter((b) => b.companyId === company.id && monthOf(b.date) === month);
+  const usedHours = monthBookings.reduce((sum, b) => sum + (b.end - b.start), 0);
+  const overageHours = Math.max(0, usedHours - company.freeHours);
+  return { usedHours, overageHours, bookingCount: monthBookings.length };
+}
+
 module.exports = {
   OPEN_HOUR,
   CLOSE_HOUR,
@@ -65,5 +77,6 @@ module.exports = {
   rangesOverlap,
   findConflict,
   maxContiguousHours,
-  usedHoursInMonth
+  usedHoursInMonth,
+  companyMonthSummary
 };

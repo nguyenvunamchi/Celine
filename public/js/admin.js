@@ -34,6 +34,10 @@
     var s = Math.abs(n % 1) < 0.001 ? String(Math.round(n)) : n.toFixed(1).replace('.', ',');
     return s + 'h';
   }
+  function currentMonthStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1);
+  }
 
   function toast(msg, kind) {
     var stack = document.getElementById('toastStack');
@@ -54,11 +58,19 @@
     document.getElementById('loginWrap').hidden = false;
     document.getElementById('dashboard').hidden = true;
   }
+  var reportInitialized = false;
   function showDashboard(username) {
     document.getElementById('loginWrap').hidden = true;
     document.getElementById('dashboard').hidden = false;
     document.getElementById('whoami').textContent = username ? ('Xin chào, ' + username) : '';
     loadAll();
+    if (!reportInitialized) {
+      reportInitialized = true;
+      var monthInput = document.getElementById('reportMonth');
+      monthInput.value = currentMonthStr();
+      updateReportLink();
+      loadReport(monthInput.value);
+    }
   }
 
   document.getElementById('loginForm').addEventListener('submit', function (e) {
@@ -107,6 +119,39 @@
       }).join('');
     }).catch(function (err) { if (err.status === 401) showLogin(); });
   }
+
+  function updateReportLink() {
+    var month = document.getElementById('reportMonth').value || currentMonthStr();
+    document.getElementById('downloadReportBtn').href = '/api/admin/reports/monthly.xlsx?month=' + encodeURIComponent(month);
+  }
+
+  function loadReport(month) {
+    var tbody = document.getElementById('reportTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-note">Đang tải…</td></tr>';
+    api('/api/admin/reports/monthly?month=' + encodeURIComponent(month)).then(function (data) {
+      if (!data.companies.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty-note">Chưa có công ty nào.</td></tr>'; return; }
+      var rowsHtml = data.companies.map(function (c) {
+        return '<tr><td>' + esc(c.name) + '</td><td class="mono">' + fmtH(c.freeHours) + '</td><td class="mono">' + fmtH(c.usedHours) + '</td>' +
+          '<td>' + (c.overageHours > 0 ? '<span class="mono" style="color:var(--warn);font-weight:700">' + fmtH(c.overageHours) + '</span>' : '<span class="mono mini-figure">—</span>') + '</td>' +
+          '<td class="mono">' + c.bookingCount + '</td></tr>';
+      }).join('');
+      var totalHtml = '<tr style="font-weight:700"><td>Tổng cộng</td><td></td><td class="mono">' + fmtH(data.totals.usedHours) + '</td>' +
+        '<td class="mono" style="color:var(--warn)">' + fmtH(data.totals.overageHours) + '</td><td class="mono">' + data.totals.bookingCount + '</td></tr>';
+      tbody.innerHTML = rowsHtml + totalHtml;
+    }).catch(function (err) {
+      if (err.status === 401) { showLogin(); return; }
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-note">Lỗi tải báo cáo: ' + esc(err.message) + '</td></tr>';
+    });
+  }
+
+  document.getElementById('reportMonth').addEventListener('change', function () {
+    updateReportLink();
+    loadReport(this.value || currentMonthStr());
+  });
+  document.getElementById('viewReportBtn').addEventListener('click', function () {
+    var month = document.getElementById('reportMonth').value || currentMonthStr();
+    loadReport(month);
+  });
 
   function loadRooms() {
     api('/api/admin/rooms').then(function (rows) {
@@ -165,11 +210,13 @@
     api('/api/admin/companies').then(function (rows) {
       var el = document.getElementById('companiesTableBody');
       el.innerHTML = rows.map(function (c) {
+        var overage = c.overageHours || 0;
         var ratio = c.usedHours / c.freeHours;
-        var st = c.usedHours > c.freeHours ? 'danger' : ratio >= 0.8 ? 'warn' : 'ok';
+        var st = overage > 0 ? 'danger' : ratio >= 0.8 ? 'warn' : 'ok';
         var pct = Math.min(100, Math.round(ratio * 100));
         return '<tr><td>' + esc(c.name) + '</td><td>' + esc(c.plan) + '</td>' +
           '<td><div class="mini-meter"><div class="mini-track"><div class="mini-fill is-' + st + '" style="width:' + pct + '%"></div></div><span class="mono mini-figure">' + fmtH(c.usedHours) + ' / ' + fmtH(c.freeHours) + '</span></div></td>' +
+          '<td>' + (overage > 0 ? '<span class="mono" style="color:var(--warn);font-weight:700">' + fmtH(overage) + '</span>' : '<span class="mono mini-figure">—</span>') + '</td>' +
           '<td>' + (c.status === 'active' ? '<span class="chip chip-ok">Đang hoạt động</span>' : '<span class="chip chip-off">Tạm ngưng</span>') + '</td>' +
           '<td class="table-actions">' +
             '<button class="icon-btn" data-edit-company="' + c.id + '" type="button" aria-label="Sửa thông tin công ty"><svg class="icon" width="15" height="15"><use href="#i-pencil"></use></svg></button>' +
