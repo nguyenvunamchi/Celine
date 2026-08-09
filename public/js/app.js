@@ -259,11 +259,19 @@
       '</dl>' +
       '<div class="field"><label for="durationSelect">Thời lượng</label><select id="durationSelect">' + durOpts + '</select></div>' +
       '<div class="field"><label for="noteInput">Ghi chú (không bắt buộc)</label><input id="noteInput" type="text" maxlength="60" placeholder="VD: Họp với đối tác ABC"></div>' +
+      '<div class="field"><label for="contactName">Họ tên người đặt</label><input id="contactName" type="text" maxlength="80" placeholder="VD: Nguyễn Văn A" autocomplete="name"></div>' +
+      '<div class="field"><label for="contactPhone">Số điện thoại người đặt</label><input id="contactPhone" type="tel" maxlength="20" placeholder="VD: 0938 123 456" autocomplete="tel"></div>' +
+      '<p class="privacy-note"><svg class="icon" width="15" height="15"><use href="#i-lock"></use></svg>Thông tin này chỉ phục vụ công tác quản trị nội bộ để liên hệ khi cần thiết — không hiển thị công khai và không chia sẻ cho công ty khác.</p>' +
       '<div id="limitWarning"></div>' +
       '<div class="panel-actions">' +
         '<button type="button" class="btn btn-ghost" id="cancelSelectBtn">Huỷ chọn</button>' +
         '<button type="button" class="btn btn-primary" id="confirmBtn" style="flex:1">Xác nhận đặt phòng</button>' +
       '</div>';
+
+    var savedContact = {};
+    try { savedContact = JSON.parse(localStorage.getItem('sbsh_contact') || '{}'); } catch (e) { savedContact = {}; }
+    if (savedContact.name) document.getElementById('contactName').value = savedContact.name;
+    if (savedContact.phone) document.getElementById('contactPhone').value = savedContact.phone;
 
     var durSel = document.getElementById('durationSelect');
     function updateWarning() {
@@ -292,14 +300,21 @@
     document.getElementById('cancelSelectBtn').addEventListener('click', function () { state.selectedHour = null; renderGrid(); renderPanel(); });
     document.getElementById('confirmBtn').addEventListener('click', function () {
       var confirmBtn = document.getElementById('confirmBtn');
+      var contactName = document.getElementById('contactName').value.trim();
+      var contactPhone = document.getElementById('contactPhone').value.trim();
+      var phoneDigits = contactPhone.replace(/[^0-9]/g, '');
+      if (!contactName) { toast('Vui lòng nhập họ tên người đặt.', 'warn'); document.getElementById('contactName').focus(); return; }
+      if (phoneDigits.length < 8) { toast('Vui lòng nhập số điện thoại hợp lệ của người đặt.', 'warn'); document.getElementById('contactPhone').focus(); return; }
+
       confirmBtn.disabled = true;
       var dur = parseInt(durSel.value, 10);
       var note = document.getElementById('noteInput').value.trim();
       api('/api/bookings', {
         method: 'POST',
-        body: { roomId: state.roomId, date: state.date, start: h, duration: dur, companyId: state.companyId, note: note }
+        body: { roomId: state.roomId, date: state.date, start: h, duration: dur, companyId: state.companyId, note: note, contactName: contactName, contactPhone: contactPhone }
       }).then(function (result) {
         state.selectedHour = null;
+        try { localStorage.setItem('sbsh_contact', JSON.stringify({ name: contactName, phone: contactPhone })); } catch (e) { /* ignore */ }
         toast('Đã đặt ' + (room(state.roomId) || {}).name + ' ' + fmtRange(h, h + dur) + ' ngày ' + fmtDateShort(state.date) + ' thành công' + (result.overLimit ? ' (đã vượt giờ miễn phí)' : ''), result.overLimit ? 'warn' : 'ok');
         refreshAll();
       }).catch(function (err) {

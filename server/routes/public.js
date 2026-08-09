@@ -10,6 +10,23 @@ function currentMonth() {
   return new Date().toISOString().slice(0, 7);
 }
 
+// Contact name/phone are collected for the office admin's own follow-up use
+// only (see README) — every customer-facing response strips them before it
+// leaves this route file. Only server/routes/admin.js ever sends them out.
+function stripContact(b) {
+  const { contactName, contactPhone, ...rest } = b; // eslint-disable-line no-unused-vars
+  return rest;
+}
+
+// Loose on purpose: Vietnamese numbers are written many ways (0xxxxxxxxx,
+// +84xxxxxxxxx, with spaces/dots/dashes). Just require enough digits that it
+// could plausibly be a phone number, not a specific format.
+function isPlausiblePhone(s) {
+  if (typeof s !== 'string') return false;
+  const digits = s.replace(/[^0-9]/g, '');
+  return digits.length >= 8 && digits.length <= 15;
+}
+
 function companyPublicView(c, bookings, month) {
   const summary = rules.companyMonthSummary(bookings, c, month);
   return {
@@ -47,7 +64,7 @@ router.get('/bookings', (req, res) => {
     .filter((b) => b.roomId === roomId && b.date === date)
     .map((b) => {
       const company = state.companies.find((c) => c.id === b.companyId);
-      return { ...b, companyName: company ? company.name : 'Công ty không xác định' };
+      return stripContact({ ...b, companyName: company ? company.name : 'Công ty không xác định' });
     })
     .sort((a, b) => a.start - b.start);
   res.json(list);
@@ -60,13 +77,14 @@ router.get('/bookings/mine', (req, res) => {
   const state = db.get();
   const list = state.bookings
     .filter((b) => b.companyId === companyId)
-    .sort((a, b) => (a.date === b.date ? a.start - b.start : a.date < b.date ? -1 : 1));
+    .sort((a, b) => (a.date === b.date ? a.start - b.start : a.date < b.date ? -1 : 1))
+    .map(stripContact);
   res.json(list);
 });
 
-// POST /api/bookings  { roomId, date, start, duration, companyId, note }
+// POST /api/bookings  { roomId, date, start, duration, companyId, note, contactName, contactPhone }
 router.post('/bookings', express.json(), (req, res) => {
-  const { roomId, date, start, duration, companyId, note } = req.body || {};
+  const { roomId, date, start, duration, companyId, note, contactName, contactPhone } = req.body || {};
 
   const state = db.get();
   const room = state.rooms.find((r) => r.id === roomId);
@@ -88,6 +106,13 @@ router.post('/bookings', express.json(), (req, res) => {
   const endHour = startHour + dur;
   if (startHour < rules.OPEN_HOUR || endHour > rules.CLOSE_HOUR) {
     return res.status(400).json({ error: `Khung giờ phải nằm trong ${rules.OPEN_HOUR}:00–${rules.CLOSE_HOUR}:00.` });
+  }
+  const trimmedName = typeof contactName === 'string' ? contactName.trim() : '';
+  if (!trimmedName) {
+    return res.status(400).json({ error: 'Vui lòng nhập họ tên người đặt.' });
+  }
+  if (!isPlausiblePhone(contactPhone)) {
+    return res.status(400).json({ error: 'Vui lòng nhập số điện thoại hợp lệ của người đặt.' });
   }
 
   const conflict = rules.findConflict(state.bookings, { roomId, date, start: startHour, end: endHour });
@@ -117,6 +142,8 @@ router.post('/bookings', express.json(), (req, res) => {
       end: endHour,
       companyId: company.id,
       note: typeof note === 'string' ? note.slice(0, 120) : '',
+      contactName: trimmedName.slice(0, 80),
+      contactPhone: String(contactPhone).trim().slice(0, 20),
       overLimit,
       createdAt: new Date().toISOString()
     };
@@ -125,7 +152,7 @@ router.post('/bookings', express.json(), (req, res) => {
   });
 
   res.status(201).json({
-    booking,
+    booking: stripContact(booking),
     overLimit,
     usedHoursAfter: usedBefore + dur,
     freeHours: company.freeHours

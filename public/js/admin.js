@@ -183,9 +183,12 @@
   function loadBookings() {
     api('/api/admin/bookings').then(function (rows) {
       var el = document.getElementById('bookingsTableBody');
-      if (!rows.length) { el.innerHTML = '<tr><td colspan="6" class="empty-note">Chưa có lịch đặt nào.</td></tr>'; return; }
+      if (!rows.length) { el.innerHTML = '<tr><td colspan="7" class="empty-note">Chưa có lịch đặt nào.</td></tr>'; return; }
       el.innerHTML = rows.map(function (b) {
-        return '<tr><td>' + esc(b.roomName) + '</td><td>' + esc(b.companyName) + '</td><td class="mono">' + fmtDateShort(b.date) + '</td><td class="mono">' + fmtRange(b.start, b.end) + '</td>' +
+        var contact = b.contactName
+          ? esc(b.contactName) + (b.contactPhone ? '<br><span class="mono" style="font-size:12px;color:var(--ink-soft)">' + esc(b.contactPhone) + '</span>' : '')
+          : '<span class="empty-note" style="padding:0">—</span>';
+        return '<tr><td>' + esc(b.roomName) + '</td><td>' + esc(b.companyName) + '</td><td>' + contact + '</td><td class="mono">' + fmtDateShort(b.date) + '</td><td class="mono">' + fmtRange(b.start, b.end) + '</td>' +
           '<td>' + (b.overLimit ? '<span class="chip chip-warn">Vượt hạn mức</span>' : '<span class="chip chip-ok">Trong hạn</span>') + '</td>' +
           '<td class="table-actions">' +
             '<button class="icon-btn" data-edit-booking="' + b.id + '" type="button" aria-label="Sửa giờ họp"><svg class="icon" width="15" height="15"><use href="#i-pencil"></use></svg></button>' +
@@ -255,7 +258,8 @@
     dlg.innerHTML =
       '<div class="modal-head"><h2 id="modalTitle">Sửa giờ họp — ' + esc(b.roomName) + '</h2>' +
       '<button class="icon-btn" id="modalCloseBtn" type="button" aria-label="Đóng"><svg class="icon" width="15" height="15"><use href="#i-x"></use></svg></button></div>' +
-      '<p class="hint" style="margin-bottom:14px">Công ty: <strong style="color:var(--ink)">' + esc(b.companyName) + '</strong></p>' +
+      '<p class="hint" style="margin-bottom:14px">Công ty: <strong style="color:var(--ink)">' + esc(b.companyName) + '</strong>' +
+      (b.contactName ? '<br>Người đặt: <strong style="color:var(--ink)">' + esc(b.contactName) + (b.contactPhone ? ' · ' + esc(b.contactPhone) : '') + '</strong>' : '') + '</p>' +
       '<div id="editBookingError"></div>' +
       '<div class="field"><label for="editDate">Ngày</label><input type="date" id="editDate" value="' + b.date + '"></div>' +
       '<div class="field"><label for="editStart">Giờ bắt đầu</label><select id="editStart">' + startOpts + '</select></div>' +

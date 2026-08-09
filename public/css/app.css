@@ -148,6 +148,8 @@ button{cursor:pointer}
 .field label{font-size:12.5px;font-weight:700;color:var(--ink-soft)}
 .field select,.field input[type=text],.field input[type=password],.field input[type=date]{border:1px solid var(--border);background:var(--surface-2);border-radius:var(--radius-sm);padding:9px 11px;font-size:14px;width:100%}
 .panel-actions{display:flex;gap:10px;margin-top:6px}
+.privacy-note{display:flex;align-items:flex-start;gap:7px;font-size:12px;line-height:1.5;color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:12px}
+.privacy-note .icon{flex:none;margin-top:1px;color:var(--ink-faint)}
 
 .alert{display:flex;gap:11px;padding:13px 14px;border-radius:var(--radius-md);font-size:13px;line-height:1.5}
 .alert .icon{flex:none;width:19px;height:19px;margin-top:1px}
